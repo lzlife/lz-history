@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/@ztools-center/ztools-api-types/resource/ztools.schema.json",
+  "name": "lz-history",
+  "title": "lz history",
+  "description": "快速打开 IDE 最近项目、浏览器书签和历史记录",
+  "author": "lz",
+  "version": "1.0.0",
+  "main": "index.html",
+  "preload": "preload/services.js",
+  "logo": "logo.png",
+  "development": {
+    "main": "http://localhost:5173"
+  },
+  "features": [
+    {
+      "code": "ide",
+      "explain": "列出 IDE 最近打开的项目，选择后直接打开",
+      "icon": "logo.png",
+      "cmds": ["ide"]
+    },
+    {
+      "code": "bookmarks",
+      "explain": "列出 Edge 浏览器书签，选择后直接打开",
+      "icon": "logo.png",
+      "cmds": ["bookmarks"]
+    },
+    {
+      "code": "history",
+      "explain": "列出 Edge 浏览器历史记录，选择后直接打开",
+      "icon": "logo.png",
+      "cmds": ["history", "历史"]
+    },
+    {
+      "code": "setting",
+      "explain": "打开插件配置页面，设置各功能所需的文件路径",
+      "icon": "logo.png",
+      "cmds": ["setting", "设置"]
+    }
+  ]
+}
