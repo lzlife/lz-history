@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/@ztools-center/ztools-api-types/resource/ztools.schema.json",
   "name": "lz-history",
-  "title": "lz history",
+  "title": "书签和历史记录",
   "description": "快速打开 IDE 最近项目、浏览器书签和历史记录",
   "author": "lz",
   "version": "1.0.0",

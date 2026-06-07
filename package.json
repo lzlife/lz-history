@@ -1,7 +1,7 @@
 {
   "name": "lz-history",
   "version": "1.0.0",
-  "description": "A ZTools plugin",
+  "description": "书签和历史记录",
   "type": "module",
   "scripts": {
     "dev": "vite",
