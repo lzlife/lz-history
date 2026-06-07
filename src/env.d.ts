@@ -19,6 +19,7 @@ declare global {
   }
 
   interface Services {
+    getPlatform: () => string
     getHomeDir: () => string
     readProjects: (filePath: string) => VscProject[]
     readZedProjects: (filePath: string) => VscProject[]

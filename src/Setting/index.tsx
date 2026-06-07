@@ -28,6 +28,10 @@ function getHome() {
   return window.services.getHomeDir()
 }
 
+function getPlatform() {
+  return window.services.getPlatform()
+}
+
 interface SettingProps {
   enterAction: any
   initialTab?: ActiveTab
@@ -80,7 +84,7 @@ export default function Setting({ enterAction, initialTab }: SettingProps) {
   const handleSelect = useCallback((key: string) => {
     const files = window.ztools.showOpenDialog({
       title: '选择文件',
-      properties: ['openFile']
+      properties: key.endsWith('ExePath') && getPlatform() === 'darwin' ? ['openFile', 'openDirectory'] : ['openFile']
     })
     if (!files?.length) return
     const filePath = files[0]
@@ -146,8 +150,21 @@ export default function Setting({ enterAction, initialTab }: SettingProps) {
     const ide = ALL_IDES.find(i => i.id === id)
     if (!ide) return null
     const home = getHome()
+    const platform = getPlatform()
     const projectsPathKey = `${id}ProjectsPath`
     const exePathKey = `${id}ExePath`
+    const vscodeProjectHint = platform === 'darwin'
+      ? `文件通常放在 ${home}/Library/Application Support/Code/User/globalStorage/state.vscdb`
+      : `文件通常放在 ${home}\\.vscode-shared\\sharedStorage\\state.vscdb`
+    const vscodeExeHint = platform === 'darwin'
+      ? '程序通常为 /Applications/Visual Studio Code.app'
+      : `文件通常放在 ${home}\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe`
+    const zedProjectHint = platform === 'darwin'
+      ? `文件通常放在 ${home}/Library/Application Support/Zed/db/0-stable/db.sqlite（预览版为 0-preview）`
+      : `文件通常放在 ${home}\\AppData\\Local\\Zed\\db\\0-stable\\db.sqlite（预览版为 0-preview）`
+    const zedExeHint = platform === 'darwin'
+      ? '程序通常为 /Applications/Zed.app'
+      : `通常为 ${home}\\AppData\\Local\\Zed\\Zed.exe`
 
     return (
       <div key={`ide-${id}`} className="border rounded-lg p-4 space-y-4">
@@ -174,10 +191,10 @@ export default function Setting({ enterAction, initialTab }: SettingProps) {
             </Button>
           </div>
         </div>
-        {id === 'vscode' && renderField(projectsPathKey, '项目文件', `文件通常放在 ${home}\\.vscode-shared\\sharedStorage\\state.vscdb`)}
-        {id === 'vscode' && renderField(exePathKey, '程序文件', `文件通常放在 ${home}\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe`)}
-        {id === 'zed' && renderField(projectsPathKey, '项目文件', `文件通常放在 ${home}\\AppData\\Local\\Zed\\db\\0-stable\\db.sqlite（预览版为 0-preview）`)}
-        {id === 'zed' && renderField(exePathKey, '程序文件', `通常为 ${home}\\AppData\\Local\\Zed\\Zed.exe`)}
+        {id === 'vscode' && renderField(projectsPathKey, '项目文件', vscodeProjectHint)}
+        {id === 'vscode' && renderField(exePathKey, '程序文件', vscodeExeHint)}
+        {id === 'zed' && renderField(projectsPathKey, '项目文件', zedProjectHint)}
+        {id === 'zed' && renderField(exePathKey, '程序文件', zedExeHint)}
       </div>
     )
   }
@@ -193,16 +210,21 @@ export default function Setting({ enterAction, initialTab }: SettingProps) {
     const browser = ALL_BROWSERS.find(b => b.id === id)
     if (!browser) return null
     const home = getHome()
+    const platform = getPlatform()
     const isEdge = id === 'edge'
     const dataPathKey = `${id}${pathSuffix}`
     const exePathKey = `${id}ExePath`
 
     const dataHint = isEdge
-      ? `文件通常放在 ${home}\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\${pathSuffix === 'BookmarksPath' ? 'Bookmarks' : 'History'}`
+      ? platform === 'darwin'
+        ? `文件通常放在 ${home}/Library/Application Support/Microsoft Edge/Default/${pathSuffix === 'BookmarksPath' ? 'Bookmarks' : 'History'}`
+        : `文件通常放在 ${home}\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\${pathSuffix === 'BookmarksPath' ? 'Bookmarks' : 'History'}`
       : ''
 
     const exeHint = isEdge
-      ? '文件通常放在 C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+      ? platform === 'darwin'
+        ? '程序通常为 /Applications/Microsoft Edge.app'
+        : '文件通常放在 C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
       : ''
 
     return (
@@ -235,8 +257,6 @@ export default function Setting({ enterAction, initialTab }: SettingProps) {
       </div>
     )
   }
-
-  const home = getHome()
 
   return (
     <div className="flex h-screen">

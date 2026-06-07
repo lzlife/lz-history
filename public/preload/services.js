@@ -2,6 +2,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 const os = require('node:os')
 const { execFile } = require('node:child_process')
+const { fileURLToPath } = require('node:url')
 
 function copyToTemp(sourcePath) {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ztools-'))
@@ -29,6 +30,18 @@ function ensureSql() {
 }
 
 function findEdgePath() {
+  if (process.platform === 'darwin') {
+    const candidates = [
+      '/Applications/Microsoft Edge.app',
+      path.join(os.homedir(), 'Applications', 'Microsoft Edge.app'),
+      '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'
+    ]
+    for (const p of candidates) {
+      if (fs.existsSync(p)) return p
+    }
+    throw new Error('未找到 Microsoft Edge，请确认已安装')
+  }
+
   const candidates = [
     'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
     'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe'
@@ -42,12 +55,34 @@ function findEdgePath() {
   throw new Error('未找到 Microsoft Edge，请确认已安装')
 }
 
+function decodeFileUri(uri) {
+  if (!uri) return ''
+  if (!uri.startsWith('file:')) return uri
+  try {
+    return fileURLToPath(uri)
+  } catch {
+    const withoutScheme = uri.replace(/^file:\/\//, '')
+    return decodeURIComponent(withoutScheme).replace(/\//g, path.sep)
+  }
+}
+
+function openWithAppOrExecutable(appPath, target) {
+  if (process.platform === 'darwin' && appPath.endsWith('.app')) {
+    execFile('open', ['-a', appPath, target])
+    return
+  }
+  execFile(appPath, [target])
+}
+
 function findVscSharedPath() {
   const sharedPath = path.join(os.homedir(), '.vscode-shared', 'sharedStorage', 'state.vscdb')
   return fs.existsSync(sharedPath) ? sharedPath : null
 }
 
 window.services = {
+  getPlatform() {
+    return process.platform
+  },
   getHomeDir() {
     return os.homedir()
   },
@@ -61,8 +96,7 @@ window.services = {
     for (const entry of raw.entries || raw) {
       const uri = entry.folderUri || ''
       if (!uri) continue
-      const filePath2 = uri.replace(/^file:\/\/\//, '').replace(/^file:\/\//, '')
-      const decodedPath = decodeURIComponent(filePath2).replace(/\//g, path.sep)
+      const decodedPath = decodeFileUri(uri)
       const name = path.basename(decodedPath)
       projects.push({ name, path: decodedPath })
     }
@@ -200,12 +234,12 @@ window.services = {
   },
 
   openWithExe(exePath, projectPath) {
-    execFile(exePath, [projectPath])
+    openWithAppOrExecutable(exePath, projectPath)
   },
 
   openWithEdge(url) {
     const edgePath = findEdgePath()
-    execFile(edgePath, [url])
+    openWithAppOrExecutable(edgePath, url)
   },
 
   getEdgePath() {
@@ -221,6 +255,6 @@ window.services = {
   },
 
   openWithUrl(exePath, url) {
-    execFile(exePath, [url])
+    openWithAppOrExecutable(exePath, url)
   }
 }
